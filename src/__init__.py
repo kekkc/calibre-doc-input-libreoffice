@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # vim:fileencoding=utf-8
 from calibre.ptempfile import PersistentTemporaryDirectory
-import os
-from subprocess import check_call
+from pathlib import Path
+import subprocess # Import subprocess module
+import os # We will use the exists() function from this module to know if the file was created.
 
 __license__ = 'GPL v3'
-__copyright__ = '2013, David Ignjic <ignjic at gmail.com>'
+__copyright__ = '2025, kekkc / originally by David Ignjic <ignjic at gmail.com>'
 
 
 from calibre.customize.conversion import InputFormatPlugin, OptionRecommendation
@@ -15,16 +16,16 @@ from calibre.customize.builtins import plugins
 class DOCInput(InputFormatPlugin):
 
     name = 'DOC Input'
-    author = 'David Ignjic'
-    description = _('Convert DOC files via docx to HTML')
+    author = 'kekkc / originally by David Ignjic'
+    description = _('DOC-File (.doc) conversion to docx & HTML via LibreOffice (enabling full text search)')
     supported_platforms = ['windows']
     file_types = {'doc'}
-    minimum_calibre_version = (1, 15, 0)
-    version = (1, 0, 1)
+    minimum_calibre_version = (7, 0, 0)
+    version = (2, 0, 0)
 
     options = {
-        OptionRecommendation(name='wordconv_exe_path', recommended_value='c:\Program Files\Microsoft Office\Office12\Wordconv.exe', 
-            help=_('Path where is Wordconv.exe. Usually it is in "c:\Program Files\Microsoft Office\Office12\Wordconv.exe". If you don\'t have it you could download see http://www.microsoft.com/en-us/download/details.aspx?id=3 ')),
+        OptionRecommendation(name='wordconv_exe_path', recommended_value='C:\Program Files\LibreOffice\program\soffice.exe', 
+            help=_('Path to LibreOffice. Usually it is in "C:\Program Files\LibreOffice\program\soffice.exe". If you don\'t have it you can download it from https://www.libreoffice.org ')),
         OptionRecommendation(name='docx_no_cover', recommended_value=False,
             help=_('Normally, if a large image is present at the start of the document that looks like a cover, '
                    'it will be removed from the document and used as the cover for created ebook. This option '
@@ -44,15 +45,32 @@ class DOCInput(InputFormatPlugin):
         doc_temp_directory = PersistentTemporaryDirectory('doc_input')
         log.debug('Convert doc ' + stream.name + ' to docx via ' + options.wordconv_exe_path)
         
-        docx_file = os.path.join(doc_temp_directory,os.path.basename( stream.name)+".docx")  
+        doc_file = Path(os.path.join(doc_temp_directory,os.path.basename(stream.name)))
+        docx_file = str(doc_file.with_suffix('.docx'))
         log.debug('Temp directory '+ doc_temp_directory + ' temp output file'+docx_file)
         stream.close()
         if  not os.path.exists(options.wordconv_exe_path):
             raise ValueError('Not found ' + options.wordconv_exe_path)
 
-        check_call([options.wordconv_exe_path,"-oice","-nme",stream.name,docx_file])        
+        def convert_doc_to_odt(LibreOffice,file_path, output_dir):
+            subprocess.run(
+                    [
+                        LibreOffice,
+                        "--headless",
+                        "--convert-to",
+                        "docx",
+                        file_path,
+                        "--outdir",
+                        output_dir,
+                    ],
+                    cwd=os.getcwd(),
+                    shell=True,
+                    check=True,
+                )
+
+        convert_doc_to_odt(options.wordconv_exe_path,stream.name, doc_temp_directory)
+
         if  not os.path.exists(docx_file):
             raise ValueError('Not converted ' + docx_file)
         
         return Convert(docx_file, detect_cover=not options.docx_no_cover, log=log)()
-
