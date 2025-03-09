@@ -64,13 +64,13 @@ class Ui_Form(object):
 
     def fileSearch(self):
         use_native_dialog = 'CALIBRE_NO_NATIVE_FILEDIALOGS' not in os.environ
-        filterString = 'wordconv.exe (wordconv.exe)'
+        filterString = 'soffice.exe (soffice.exe)'
 
         with SanitizeLibraryPath():
-            opts = QFileDialog.Option()
-            if not use_native_dialog:
-                opts |= QFileDialog.DontUseNativeDialog
-            selectedFile = QFileDialog.getOpenFileName(parent=self, caption=_('Find wordconv.exe'),directory = self.opt_wordconv_exe_path.text(),filter = filterString,options=opts)
+            parent = self.parent()
+            if parent is None:
+                raise ValueError('parent is None')
+            selectedFile = QFileDialog.getOpenFileName(parent=parent, caption=_('Find soffice.exe'), directory=self.opt_wordconv_exe_path.text(), filter=filterString)
             if selectedFile:
                 selectedFile = selectedFile[0] if isinstance(selectedFile, tuple) else selectedFile
                 if selectedFile and os.path.exists(selectedFile):
@@ -78,7 +78,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(_translate("Form", "Form", None))
-        self.label.setText(_translate("Form", "<html><head/><body><p>Microsoft conversion program Wordconv.exe.Usually is placed in &quot;c:\\Program Files (x86)\\Microsoft Office\\Office12\\Wordconv.exe&quot;. You can dowload from <a href=\"http://www.microsoft.com/en-us/download/details.aspx?id=3\"><span style=\" text-decoration: underline; color:#0000ff;\">microsoft page.</span></a></p></body></html>", None))
+        self.label.setText(_translate("Form", "<html><head/><body><p>LibreOffice conversion program soffice.exe. Usually is placed in &quot;C:\\Program Files\\LibreOffice\\program\\soffice.exe&quot;. You can dowload it from <a href=\"https://www.libreoffice.org\"><span style=\" text-decoration: underline; color:#0000ff;\">www.libreoffice.org.</span></a></p></body></html>", None))
         self.fileChoose.setText(_translate("Form", "...", None))
         self.opt_docx_no_cover.setText(_translate("Form", "Do not try to autodetect a &cover from images in the document", None))
 

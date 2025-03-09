@@ -21,7 +21,7 @@ class DOCInput(InputFormatPlugin):
     supported_platforms = ['windows']
     file_types = {'doc'}
     minimum_calibre_version = (7, 0, 0)
-    version = (2, 0, 0)
+    version = (2, 0, 1)
 
     options = {
         OptionRecommendation(name='wordconv_exe_path', recommended_value='C:\Program Files\LibreOffice\program\soffice.exe', 
